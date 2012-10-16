@@ -1,8 +1,6 @@
 --[[
 
 luagroups - Group oriented programming in Lua.
-
-Chan - Concurrency in C
 BSD license.
 by Sven Nilsen, 2012
 http://www.cutoutpro.com
