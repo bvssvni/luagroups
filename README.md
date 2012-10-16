@@ -1,9 +1,9 @@
-luagroups - Group oriented programming in Lua
-BSD license.
-by Sven Nilsen, 2012
-http://www.cutoutpro.com
+luagroups - Group oriented programming in Lua  
+BSD license.  
+by Sven Nilsen, 2012  
+http://www.cutoutpro.com  
 
-Version: 0.000 in angular degrees version notation
+Version: 0.000 in angular degrees version notation  
 http://isprogrammingeasy.blogspot.no/2012/08/angular-degrees-versioning-notation.html
 
 
