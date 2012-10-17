@@ -5,8 +5,10 @@ BSD license.
 by Sven Nilsen, 2012
 http://www.cutoutpro.com
 
-Version: 0.000 in angular degrees version notation
+Version: 0.001 in angular degrees version notation
 http://isprogrammingeasy.blogspot.no/2012/08/angular-degrees-versioning-notation.html
+
+0.001 Changed table.getn to #
 
 --]]
 
@@ -33,9 +35,11 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 --]]
 
+
 -- Takes group bitstream OR operation between two groups.
 function groups_Or(a, b)
 	local list = {};
+  setmetatable(list, group_bitstream)
 	
 	if #a == 0 and #b == 0 then return list end
 	if #a == 0 then
@@ -85,6 +89,7 @@ end
 -- Union intersection of groups.
 function groups_And(a, b)
 	local list = {};
+  setmetatable(list, group_bitstream)
 	
 	if #a == 0 or #b == 0 then return list end
 	
@@ -124,6 +129,7 @@ end
 -- Subtracts one group from another.
 function groups_Except(a, b)
 	local list = {};
+  setmetatable(list, group_bitstream)
 	
 	if #a == 0 then return list end
 	
@@ -160,12 +166,21 @@ function groups_Except(a, b)
 	return list
 end
 
+-- Returns the size of the group.
+function groups_Size(a)
+  local size = 0
+  for i = 0, #a-1, 2 do
+    size = size + a[i+2] - a[i+1]
+  end
+  return size
+end
+
 group_bitstream = {__mul = groups_And, __add = groups_Or, __sub = groups_Except}
 
 -- Iterator for for loops.
 function group(t)
   local i, j = 0, -1
-  local n = table.getn(t)
+  local n = #t
   local stop = 0
   return function ()
     j = j + 1
@@ -177,6 +192,13 @@ function group(t)
     end
     return j
   end
+end
+
+-- Creates a group of all items in array.
+function groups_All(a)
+  local list = {0, #a}
+  setmetatable(list, group_bitstream)
+  return list
 end
 
 -- Creates a group of items in array that have a specific property.
@@ -214,6 +236,55 @@ function groups_HasKey(a, prop, region)
     for i = 0, #a-1 do
       -- Condition that evaluates to true.
       has = a[i+1] ~= nil and a[i+1][prop] ~= nil
+      -- End condition.
+      
+      if has ~= had then
+        list[#list+1] = i
+      end
+      had = has
+    end
+    if has then list[#list+1] = #a end
+  end
+  
+  return list
+end
+
+-- Uses function to construct a group.
+-- The region is optional.
+-- The arguments of the function must be
+--  function (data, index)
+-- The function can be a closure (create by another function).
+-- A closure allows you to add extra arguments.
+function groups_ByFunction(a, func, region)
+  local list = {}
+  setmetatable(list, group_bitstream)
+  
+  if region ~= nil then
+    local had, has = false, false
+    local j = -1
+    for i in group(region) do
+      -- Check for jumping over ranges, add correction.
+      if had and j ~= -1 and i-j > 1 then
+        list[#list+1] = j+1
+        had = false
+      end
+      j = i
+      
+      -- Condition that evaluates to true.
+      has = func(a, i+1)
+      -- End condition.
+      
+      if has ~= had then
+        list[#list+1] = i
+      end
+      had = has
+    end
+    if has then list[#list+1] = j + 1 end
+  else
+    local had, has = false, false
+    for i = 0, #a-1 do
+      -- Condition that evaluates to true.
+      has = func(a, i+1)
       -- End condition.
       
       if has ~= had then
