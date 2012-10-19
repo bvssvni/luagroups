@@ -5,10 +5,11 @@ BSD license.
 by Sven Nilsen, 2012
 http://www.cutoutpro.com
 
-Version: 0.001 in angular degrees version notation
+Version: 0.002 in angular degrees version notation
 http://isprogrammingeasy.blogspot.no/2012/08/angular-degrees-versioning-notation.html
 
-0.001 Changed table.getn to #
+0.001 Changed table.getn to #.
+0.002 Added empty method.
 
 --]]
 
@@ -132,6 +133,11 @@ function groups_Except(a, b)
   setmetatable(list, group_bitstream)
 	
 	if #a == 0 then return list end
+  if #b == 0 then
+    for k = 0, #a-1 do list[k+1] = a[k+1] end
+		
+    return list
+  end
 	
   local i, j, iO, jO, pa, pb = 0, 0, 0, 0, 0, 0
 	local ba, bb, oldB = false, true, false
@@ -197,6 +203,13 @@ end
 -- Creates a group of all items in array.
 function groups_All(a)
   local list = {0, #a}
+  setmetatable(list, group_bitstream)
+  return list
+end
+
+-- Creates an empty group.
+function groups_Empty()
+  local list = {}
   setmetatable(list, group_bitstream)
   return list
 end
