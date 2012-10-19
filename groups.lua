@@ -5,11 +5,12 @@ BSD license.
 by Sven Nilsen, 2012
 http://www.cutoutpro.com
 
-Version: 0.002 in angular degrees version notation
+Version: 0.003 in angular degrees version notation
 http://isprogrammingeasy.blogspot.no/2012/08/angular-degrees-versioning-notation.html
 
-0.001 Changed table.getn to #.
+0.003 Added comparison against numbers.
 0.002 Added empty method.
+0.001 Changed table.getn to #.
 
 --]]
 
@@ -309,6 +310,46 @@ function groups_ByFunction(a, func, region)
   end
   
   return list
+end
+
+--[[
+
+A common method when dealing with numbers is to compare against a number.
+The following functions correspond to < <= > >=
+
+--]]
+
+
+function groups_LessThan(data, prop, value, region)
+  return groups_ByFunction(data, function (data, i)
+      local item = data[i]
+      if item[prop] < value then return true
+      else return false end
+    end, region)
+end
+
+function groups_LessOrEqualThan(data, prop, value, region)
+  return groups_ByFunction(data, function (data, i)
+      local item = data[i]
+      if item[prop] <= value then return true
+      else return false end
+    end, region)
+end
+
+function groups_MoreThan(data, prop, value, region)
+  return groups_ByFunction(data, function (data, i)
+      local item = data[i]
+      if item[prop] > value then return true
+      else return false end
+    end, region)
+end
+
+function groups_MoreOrEqualThan(data, prop, value, region)
+  return groups_ByFunction(data, function (data, i)
+      local item = data[i]
+      if item[prop] >= value then return true
+      else return false end
+    end, region)
 end
 
 function test_groups_Or_1()
