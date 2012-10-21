@@ -5,9 +5,10 @@ BSD license.
 by Sven Nilsen, 2012
 http://www.cutoutpro.com
 
-Version: 0.003 in angular degrees version notation
+Version: 0.004 in angular degrees version notation
 http://isprogrammingeasy.blogspot.no/2012/08/angular-degrees-versioning-notation.html
 
+0.004 Added optional parameter to group iterator.
 0.003 Added comparison against numbers.
 0.002 Added empty method.
 0.001 Changed table.getn to #.
@@ -185,10 +186,11 @@ end
 group_bitstream = {__mul = groups_And, __add = groups_Or, __sub = groups_Except}
 
 -- Iterator for for loops.
-function group(t)
+function group(t, off)
   local i, j = 0, -1
   local n = #t
   local stop = 0
+  if not off then off = 0 end
   return function ()
     j = j + 1
     if j >= stop then 
@@ -197,7 +199,7 @@ function group(t)
       stop = t[i+2]
       i = i + 2
     end
-    return j
+    return j+off
   end
 end
 
