@@ -8,6 +8,7 @@ http://www.cutoutpro.com
 Version: 0.004 in angular degrees version notation
 http://isprogrammingeasy.blogspot.no/2012/08/angular-degrees-versioning-notation.html
 
+0.005 Made Boolean algorithms easier to read.
 0.004 Added optional parameter to group iterator.
 0.003 Added comparison against numbers.
 0.002 Added empty method.
@@ -37,141 +38,151 @@ The views and conclusions contained in the software and documentation are those
 of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 --]]
-
-
--- Takes group bitstream OR operation between two groups.
+ 
 function groups_Or(a, b)
-	local list = {};
+	local list = {}
   setmetatable(list, group_bitstream)
-	
-	if #a == 0 and #b == 0 then return list end
-	if #a == 0 then
-    for k = 0, #b-1 do list[k+1] = b[k+1] end
-    
-		return list
-	end
-	if #b == 0 then
-    for k = 0, #a-1 do list[k+1] = a[k+1] end
-		
+
+  local a_length = #a
+  local b_length = #b
+
+  if a_length == 0 and b_length == 0 then
     return list
-	end
-	
-  local i, j, iO, jO, pa, pb = 0, 0, 0, 0, 0, 0
-	local ba, bb, oldB = false, false, false
-	while i < #a or j < #b do
-    if i >= #a then iO = #a-1 else iO = i end
-    if j >= #b then jO = #b-1 else jO = j end
+  end
+
+  if a_length == 0 then
+    for i = 1, b_length do list[#list+1] = b[i] end
     
-		pa, pb = a[iO+1], b[jO+1]
-		
-		if pa == pb then
-			ba = not ba; bb = not bb
-			if ((ba or bb) ~= oldB) then list[#list+1] = pa end
-			
-      i, j = i+1, j+1
-		elseif (pa < pb or j >= #b) and i < #a then
-			ba = not ba
-			if (ba or bb) ~= oldB then list[#list+1] = pa end
-      
-			i = i + 1
-		elseif j < #b then
-			bb = not bb
-			if (ba or bb) ~= oldB then list[#list+1] = pb end
-      
-			j = j + 1
-		else
-			break
+    return list
+  end
+  if b_length == 0 then
+    for i = 1, a_length do list[#list+1] = a[i] end
+
+    return list
+  end
+
+  local i, j = 0, 0
+  local isA, isB, was, has = false, false, false, false
+  local pa, pb, min
+  while i < a_length or j < b_length do
+    -- Get the least value.
+    if i >= a_length then pa = 2^32 else pa = a[i+1] end
+    if j >= b_length then pb = 2^32 else pb = b[j+1] end
+    
+    if pa < pb then min = pa else min = pb end
+
+    -- Advance the least value, both if both are equal.
+    if pa == min then
+      isA = not isA
+      i = i + 1
     end
-		
-		oldB = ba or bb
-	end -- while loop.
-	
-	return list
+    if pb == min then
+      isB = not isB
+      j = j + 1
+    end
+
+    -- Add to result if this changes the truth value.
+    has = isA or isB
+    if has ~= was then
+      list[#list+1] = min
+    end
+
+    was = isA or isB
+  end
+
+  return list
 end
 
 -- Union intersection of groups.
 function groups_And(a, b)
-	local list = {};
+  local list = {};
   setmetatable(list, group_bitstream)
-	
-	if #a == 0 or #b == 0 then return list end
-	
-  local i, j, iO, jO, pa, pb = 0, 0, 0, 0, 0, 0
-	local ba, bb, oldB = false, false, false
-	while i < #a or j < #b do
-    if i >= #a then iO = #a-1 else iO = i end
-    if j >= #b then jO = #b-1 else jO = j end
-    
-		pa, pb = a[iO+1], b[jO+1]
-		
-		if pa == pb then
-			ba = not ba; bb = not bb
-			if ((ba and bb) ~= oldB) then list[#list+1] = pa end
-			
-      i, j = i+1, j+1
-		elseif (pa < pb or j >= #b) and i < #a then
-			ba = not ba
-			if (ba and bb) ~= oldB then list[#list+1] = pa end
-      
-			i = i + 1
-		elseif j < #b then
-			bb = not bb
-			if (ba and bb) ~= oldB then list[#list+1] = pb end
-      
-			j = j + 1
-		else
-			break
+
+  local alength = #a
+  local blength = #b
+  if alength == 0 or blength == 0 then
+    return arr
+  end
+
+  local i , j = 0, 0
+  local isA, isB, was, has = false, false, false, false
+  local pa, pb, min
+  while i < alength and j < blength do
+    -- Get the last value from each group.
+    if i >= alength then pa = 2^32 else pa = a[i+1] end
+    if j >= blength then pb = 2^32 else pb = b[j+1] end
+
+    if pa < pb then min = pa else min = pb end
+
+    -- Advance the one with least value, both if they got the same.
+    if pa == min then
+      isA = not isA
+      i = i + 1
     end
-		
-		oldB = ba and bb
-	end -- while loop.
-	
-	return list
+    if pb == min then
+      isB = not isB
+      j = j + 1
+    end
+
+    -- Find out if the new change should be added to the result.
+    has = isA and isB
+    if has ~= was then
+      list[#list+1] = min
+    end
+
+    was = has
+  end
+
+  return list
 end
 
 -- Subtracts one group from another.
 function groups_Except(a, b)
-	local list = {};
+  local list = {};
   setmetatable(list, group_bitstream)
 	
-	if #a == 0 then return list end
-  if #b == 0 then
+  local a_length = #a
+  local b_length = #b
+  if b_length == 0 then
     for k = 0, #a-1 do list[k+1] = a[k+1] end
 		
     return list
   end
-	
-  local i, j, iO, jO, pa, pb = 0, 0, 0, 0, 0, 0
-	local ba, bb, oldB = false, true, false
-	while i < #a or j < #b do
-    if i >= #a then iO = #a-1 else iO = i end
-    if j >= #b then jO = #b-1 else jO = j end
+
+  if a_length == 0 or b_length == 0 then
+    return list
+  end
+
+  local i, j = 0, 0
+  local isA, isB, was, has = false, false, false, false
+  local pa, pb, min
+  while i < a_length do
+    -- Get the last value from each group.
+    if i >= a_length then pa = 2^32 else pa = a[i+1] end
+    if j >= b_length then pb = 2^32 else pb = b[j+1] end
     
-		pa, pb = a[iO+1], b[jO+1]
-		
-		if pa == pb then
-			ba = not ba; bb = not bb
-			if ((ba and bb) ~= oldB) then list[#list+1] = pa end
-			
-      i, j = i+1, j+1
-		elseif (pa < pb or j >= #b) and i < #a then
-			ba = not ba
-			if (ba and bb) ~= oldB then list[#list+1] = pa end
-      
-			i = i + 1
-		elseif j < #b then
-			bb = not bb
-			if (ba and bb) ~= oldB then list[#list+1] = pb end
-      
-			j = j + 1
-		else
-			break
+    if pa < pb then min = pa else min = pb end
+
+    -- Advance the group with least value, both if they are equal.
+    if pa == min then
+      isA = not isA;
+      i = i + 1
     end
-		
-		oldB = ba and bb
-	end -- while loop.
-	
-	return list
+    if pb == min then
+      isB = not isB
+      j = j + 1
+    end
+
+    -- If it changes the truth value, add to result.
+    has = isA and not isB
+    if has ~= was then
+      list[#list+1] = min
+    end
+
+    was = has
+  end
+
+  return list
 end
 
 -- Returns the size of the group.
@@ -205,6 +216,8 @@ end
 
 -- Creates a group of all items in array.
 function groups_All(a)
+  if #a == 0 then return {} end
+
   local list = {0, #a}
   setmetatable(list, group_bitstream)
   return list
