@@ -8,6 +8,7 @@ http://www.cutoutpro.com
 Version: 0.004 in angular degrees version notation
 http://isprogrammingeasy.blogspot.no/2012/08/angular-degrees-versioning-notation.html
 
+0.006 Added 'EqualTo', 'FindMaxIndex' and 'FindMinIndex'.
 0.005 Made Boolean algorithms easier to read.
 0.004 Added optional parameter to group iterator.
 0.003 Added comparison against numbers.
@@ -197,6 +198,8 @@ end
 group_bitstream = {__mul = groups_And, __add = groups_Or, __sub = groups_Except}
 
 -- Iterator for for loops.
+-- t is the group.
+-- off is offset index to use when returning.
 function group(t, off)
   local i, j = 0, -1
   local n = #t
@@ -334,6 +337,13 @@ The following functions correspond to < <= > >=
 
 --]]
 
+function groups_EqualTo(data, prop, value, region)
+  return groups_ByFunction(data, function (data, i)
+      local item = data[i]
+      if item[prop] == value then return true
+      else return false end
+    end, region)
+end
 
 function groups_LessThan(data, prop, value, region)
   return groups_ByFunction(data, function (data, i)
@@ -365,6 +375,54 @@ function groups_MoreOrEqualThan(data, prop, value, region)
       if item[prop] >= value then return true
       else return false end
     end, region)
+end
+
+-- Finds the index of the member with least value within a region.
+function groups_FindMinIndex(data, prop, region, offset)
+  if not offset then offset = 0 end
+  local min = nil
+  local minIndex = -1
+  if not region then
+    local n = #data-1
+    for i = 0, n do
+      if min == nil or data[i+1][prop] < min then
+        min = data[i+1][prop]
+        minIndex = i
+      end
+    end
+  else
+    for i in group(region) do
+      if min == nil or data[i+1][prop] < min then
+        min = data[i+1][prop]
+        minIndex = i
+      end
+    end
+  end
+  return minIndex + offset
+end
+
+-- Find the index of the member with largest value within a region.
+function groups_FindMaxIndex(data, prop, region, offset)
+  if not offset then offset = 0 end
+  local max = nil
+  local maxIndex = -1
+  if not region then
+    local n = #data-1
+    for i = 0, n do
+      if max == nil or data[i+1][prop] > max then
+        max = data[i+1][prop]
+        maxIndex = i
+      end
+    end
+  else
+    for i in group(region) do
+      if max == nil or data[i+1][prop] > max then
+        max = data[i+1][prop]
+        maxIndex = i
+      end
+    end
+  end
+  return maxIndex + offset
 end
 
 function test_groups_Or_1()
