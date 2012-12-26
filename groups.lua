@@ -5,7 +5,7 @@ BSD license.
 by Sven Nilsen, 2012
 http://www.cutoutpro.com
 
-Version: 0.004 in angular degrees version notation
+Version: 0.006 in angular degrees version notation
 http://isprogrammingeasy.blogspot.no/2012/08/angular-degrees-versioning-notation.html
 
 0.006 Added 'EqualTo', 'FindMaxIndex' and 'FindMinIndex'.
