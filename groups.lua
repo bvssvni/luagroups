@@ -103,7 +103,7 @@ function groups_And(a, b)
   local alength = #a
   local blength = #b
   if alength == 0 or blength == 0 then
-    return arr
+    return list
   end
 
   local i , j = 0, 0
